@@ -5,6 +5,7 @@ library(raster)
 library(rasterVis)
 library(colorspace)
 library(akima)
+library(tcltk)
 library(rpanel)
 
 install.packages("rgeos", repos="http://R-Forge.R-project.org")
@@ -123,6 +124,47 @@ contour(akima.li, add=TRUE)
 # plot data collection points over the top
 #points(data1[,1], data1[,2], pch = 3, cex = 0.25)
 
+density.draw <- function(panel) {
+  par(mfrow = c(2, 1))
+  limits<-quantile(magData[,3],  c(panel$low,panel$high)) 
+  selectdata <- magData[which(magData[,3]>limits[1] & magData[,3]<limits[2]),c(1,2,3)]
+  ras_raw <- rasterize(selectdata[,1:2], r, field = selectdata[,3])
+  # make a plot of the data
+  plot(ras_raw)
+  #par(mfrow=c(1,2))
+  #plot(magData)
+  #abline(v=limits[1])
+  #abline(v=limits[2])
+  tmdensity <- density(selectdata[,3])
+  plot(tmdensity)
+  polygon(tmdensity, col="red")
+  #hist(selectdata[,3],breaks=50)
+  panel
+}
+
+reset <- function(panel) {
+  panel$low <- 0
+  panel$high <-1 
+  density.draw(panel)
+}
+panel<-rp.control("Minimum Value",low=0,high=1, size=c(600,450))
+rp.slider(panel, low, 0,1, action=density.draw, resolution=0.05)
+rp.slider(panel, high, 0,1, action=density.draw, resolution=0.05)
+rp.button(panel, action = reset, title = "reset")
+
+x11(width=4,height=4)
+qq.draw <- function(panel) {
+  z <- bc.fn(panel$y, panel$lambda)
+  qqnorm(z, main = paste("lambda =",
+                         round(panel$lambda, 2)))
+  panel
+}
+panel <- rp.control(y = exp(rnorm(50)), lambda = 1)
+rp.slider(panel, lambda, -2, 2, qq.draw,
+          showvalue = TRUE)
+
+
+
 divPAL <-brewer.pal(n=11,'Spectral')
 divPAL[6]<-"#FFFFFF"
 showPal(divPAL)
@@ -134,3 +176,4 @@ grid <- expand.grid(x=mag[,1], y=mag[,2])
 levelplot(mag[,3]~mag[,1]*mag[,2], grid, cuts = 50, scales=list(log="e"), xlab="",
           ylab="", main="Weird Function", sub="with log scales",
           colorkey = FALSE, region = TRUE)
+
