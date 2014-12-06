@@ -45,44 +45,44 @@ break2pal <- function(x, mx, pal){
 
 library(outliers)
 trimData <- function(x) {
-  limits<-quantile(x,  c(0.1,0.9))
+  limits<-quantile(x[,3],  c(0.1,0.9))
   #This finds the location of the outlier by finding that "True" value within the "outlier_tf" array. 
-  data_new <- x[which(x>limits[1] & x<limits[2])]
+  data_new <- x[which(x[,3]>limits[1] & x[,3]<limits[2]),c(1,2,3)]
   #This creates a new dataset based on the old data, removing the one row that contains the outlier 
   data_new
 }
 
 # We read the whole file
 mag <- read.table(data.path, header = FALSE, sep="\t")
-magData <- mag[,6]
-mdensity <- density(magData)
+magData <- mag[c(1,2,6)]
+mdensity <- density(magData[,3])
 plot(mdensity)
 polygon(mdensity, col="red")
 
 trimMagData <- trimData(magData)
-tmdensity <- density(trimMagData)
+tmdensity <- density(trimMagData[,3])
 plot(tmdensity)
 polygon(tmdensity, col="red")
 
-class_e=classIntervals(mag[,6],30,style="equal")
-class_q=classIntervals(mag[,6],30,style="quantile")
-class_sd=classIntervals(mag[,6],30,style="sd")
-class_km=classIntervals(mag[,6],30,style="kmeans")
-class_hc=classIntervals(mag[,6],30,style="hclust")
-class_f=classIntervals(mag[,6],30,style="fisher")
+class_e=classIntervals(trimMagData[,3],30,style="equal")
+class_q=classIntervals(trimMagData[,3],30,style="quantile")
+class_sd=classIntervals(trimMagData[,3],30,style="sd")
+class_km=classIntervals(trimMagData[,3],30,style="kmeans")
+#class_hc=classIntervals(trimMagData[,3],30,style="hclust")
+#class_f=classIntervals(trimMagData[,3],30,style="fisher")
 pal1 <- c("wheat1", "red3")
 plotclr=colorRampPalette(brewer.pal(7,"RdYlBu")[7:1] )(200)
-plot(class_km, pal=pal1, main="fishers")
+plot(class_sd, pal=pal1, main="sd")
 
 myTheme=rasterTheme(region=sequential_hcl(10, power=2.2))
-data1 <- mag[-1,c(1,2,6)]
-xmn=min(data1[,1]); xmx=max(data1[,1])
-ymn=min(data1[,2]); ymx=max(data1[,2])
+mapdata <- trimMagData[-1,c(1,2,3)]
+xmn=min(mapdata[,1]); xmx=max(mapdata[,1])
+ymn=min(mapdata[,2]); ymx=max(mapdata[,2])
 
 r <- raster(nrows=100, ncols=100, 
             xmn=xmn, xmx=xmx, 
             ymn=ymn, ymx=ymx )
-ras_raw <- rasterize(data1[,1:2], r, field = trimMagData)
+ras_raw <- rasterize(mapdata[,1:2], r, field = mapdata[,3])
 
 # make a plot of the data
 plot(ras_raw)
@@ -107,18 +107,19 @@ plot(ras_raw,col=colcode)
 
 # plot as interpolated raster
 library(akima)
-akima.li <- interp(data1[,1], data1[,2], data1[,3], duplicate = "median",
+akima.li <- interp(mapdata[,1], mapdata[,2], mapdata[,3], duplicate = "median",
                    xo=seq(xmn,xmx, length=150),
                    yo=seq(ymn,ymx, length=150))
 # plot data collection points
-plot(data1[,2] ~ data1[,1], data = data1, pch = 3, cex = 0.5,
-     xlab = "Easting", ylab = "Northing")
+colnames(mapdata)<-c("East","North","nT")
+plot(mapdata[,2] ~ mapdata[,1], data = mapdata[,3], pch = 3, cex = 0.5,
+     xlab = "East", ylab = "North")
 # plot interpolated raster over the top
 image(akima.li, add=TRUE, col = rainbow(100, alpha = 1))
 # plot interpolated contour over the top
 contour(akima.li, add=TRUE)
 # plot data collection points over the top
-points(data1[,1], data1[,2], pch = 3, cex = 0.25)
+#points(data1[,1], data1[,2], pch = 3, cex = 0.25)
 
 divPAL <-brewer.pal(n=11,'Spectral')
 divPAL[6]<-"#FFFFFF"
