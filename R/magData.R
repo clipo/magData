@@ -1,10 +1,12 @@
 library(sp)
 library(classInt)
+library(lattice)
 library(raster)
 library(rasterVis)
 library(colorspace)
 library(akima)
 library(rpanel)
+
 install.packages("rgeos", repos="http://R-Forge.R-project.org")
 install.packages('rgdal', type='source') 
 # dont forget to "brew install gdal --HEAD"
