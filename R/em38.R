@@ -15,7 +15,7 @@ install.packages('rgdal', type='source')
 # dont forget to "brew install gdal --HEAD"
 # Download and install GDAL OS X install from kyngchaos
 #  http://www.kyngchaos.com/software/frameworks)
-  # export PATH=”/Library/Frameworks/GDAL.framework/Programs:$PATH”
+# export PATH=”/Library/Frameworks/GDAL.framework/Programs:$PATH”
 
 #2. Download and install proj4 from source
 #- http://trac.osgeo.org/proj/wiki/WikiStart#Download
@@ -31,8 +31,8 @@ install.packages('rgdal', type='source')
 # cd ~/Downloads/
 #sudo R CMD INSTALL –configure-args=’–with-proj-include=/usr/local/lib’ rgdal_0.9-1.tar.gz
 
-setwd("/Volumes/Macintosh HD/Users/clipo/Dropbox/NAGPRA (2)/Reburial Project/MagData")
-data.path <- "attachment.ashx.dat" 
+setwd("/Volumes/NO NAME/")
+data.path <- "grid1.xyz" 
 
 showPal <- function(pal, labs=pal, cex=0.6, ...){
   barplot(rep(1, length(pal)), col=pal,
@@ -58,13 +58,14 @@ trimData <- function(x) {
 }
 
 # We read the whole file
-mag <- read.table(data.path, header = FALSE, sep="\t")
-magData <- mag[c(1,2,6)]
-mdensity <- density(magData[,3])
+mag <- read.table(data.path, header = TRUE, sep="\t")
+qv1 <- mag[c(1,2,3)]
+iv1 <- mag[c(1,2,4)]
+mdensity <- density(qv1[,3])
 plot(mdensity)
 polygon(mdensity, col="red")
 
-trimMagData <- trimData(magData)
+trimMagData <- trimData(qv1)
 tmdensity <- density(trimMagData[,3])
 plot(tmdensity)
 polygon(tmdensity, col="red")
